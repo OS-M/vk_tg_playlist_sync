@@ -1,3 +1,5 @@
+import random
+
 import vk_api
 from vk_api import audio
 import requests
@@ -5,6 +7,7 @@ from telegram.ext import Updater, MessageHandler, Filters
 import json
 from time import sleep
 from settings import *
+
 
 def SaveChannels():
     json_text = json.dumps(channels)
@@ -47,22 +50,28 @@ file.close()
 file = open(audio_list_path, "a")
 print("Ok")
 
+access_key = 0
+
+def GenerateNewAccessKey():
+    global access_key
+    access_key = random.randint(0, 100000000)
+    print('New access key is', access_key)
+
 
 def TelegramUpdate(update, context):
     chat_id = update.message.chat.id
     text = str(update.message.text)
 
-    if text.startswith('QuackAdd') and len(text.split(' ')) == 2:
+    if text.startswith('AddVKPlaylist') and len(text.split(' ')) == 3 and text.count(str(access_key)) == 1:
+        GenerateNewAccessKey()
         playlist = text.split(' ')[1]
         chat_id_str = str(chat_id)
-        sure = input('Do you want to add playlist ' + playlist + ' to chat ' + chat_id_str + '? [Y/N] ')
-        if sure.lower().strip() == 'y':
-            if chat_id_str not in channels:
-                channels[chat_id_str] = []
-            channels[chat_id_str].append(playlist)
-            SaveChannels()
-            bot.send_message(chat_id, "Ok")
-            print('Added')
+        if chat_id_str not in channels:
+            channels[chat_id_str] = []
+        channels[chat_id_str].append(playlist)
+        SaveChannels()
+        bot.send_message(chat_id, "Ok")
+        print('Added playlist', playlist, 'to chat', chat_id_str)
 
 
 def Update(chat_id, playlist):
@@ -105,6 +114,8 @@ def Update(chat_id, playlist):
             print('Skipping')
     print("Updating done")
 
+
+GenerateNewAccessKey()
 
 updater = Updater(telegram_token, use_context=True)
 dp = updater.dispatcher
