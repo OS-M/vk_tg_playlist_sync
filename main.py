@@ -1,11 +1,10 @@
 import random
-
+import re
 import vk_api
 from vk_api import audio
 import requests
 from telegram.ext import Updater, MessageHandler, Filters
 import json
-from time import sleep
 from settings import *
 
 
@@ -52,6 +51,7 @@ print("Ok")
 
 access_key = 0
 
+
 def GenerateNewAccessKey():
     global access_key
     access_key = random.randint(0, 100000000)
@@ -61,17 +61,28 @@ def GenerateNewAccessKey():
 def TelegramUpdate(update, context):
     chat_id = update.message.chat.id
     text = str(update.message.text)
+    chat_id_str = str(chat_id)
 
-    if text.startswith('AddVKPlaylist') and len(text.split(' ')) == 3 and text.count(str(access_key)) == 1:
+    if text.startswith('/add_vk_playlist') and len(text.split(' ')) == 3 and text.count(str(access_key)) == 1:
         GenerateNewAccessKey()
-        playlist = text.split(' ')[1]
-        chat_id_str = str(chat_id)
+        regex = re.search(r'audio_playlist(\d+_\d+)', text)
+        if len(regex.groups()) != 1:
+            bot.send_message(chat_id, 'Invalid playlist address')
+        else:
+            playlist = regex.groups()[0]
+            if chat_id_str not in channels:
+                channels[chat_id_str] = []
+            channels[chat_id_str].append(playlist)
+            SaveChannels()
+            bot.send_message(chat_id, "Ok")
+            print('Added playlist', playlist, 'to chat', chat_id_str)
+
+    if text.startswith('/update_vk_playlist'):
         if chat_id_str not in channels:
-            channels[chat_id_str] = []
-        channels[chat_id_str].append(playlist)
-        SaveChannels()
-        bot.send_message(chat_id, "Ok")
-        print('Added playlist', playlist, 'to chat', chat_id_str)
+            bot.send_message(chat_id, 'Add Playlist First')
+        else:
+            for playlist in channels[chat_id_str]:
+                Update(chat_id, playlist.split('_'))
 
 
 def Update(chat_id, playlist):
@@ -82,11 +93,11 @@ def Update(chat_id, playlist):
     print('Playlist length: ', len(vk_audios))
 
     print("Updating...")
-    sent = 0
+    processed = 0
     for audio in vk_audios:
         name = audio["artist"] + ' - ' + audio["title"] + '.mp3'
         unique_name = str(chat_id) + '_' + name
-        print(name + '...', end=' ')
+        print('[' + f"{100. * processed / len(vk_audios):.1f}" + '%] ' + name + '...', end=' ')
         if audios.count(unique_name) == 0:
             print('Sending...', end=' ')
             r = requests.get(audio["url"])
@@ -108,10 +119,10 @@ def Update(chat_id, playlist):
             file.write(unique_name + '\n')
             audios.append(unique_name)
             file.flush()
-            sent = sent + 1
             print('Ok')
         else:
             print('Skipping')
+        processed = processed + 1
     print("Updating done")
 
 
@@ -123,9 +134,3 @@ bot = updater.bot
 dp.add_handler(MessageHandler(Filters.text & Filters.update.message, TelegramUpdate))
 updater.start_polling()
 print('Ready')
-
-while 1:
-    for chat_id in channels:
-        for playlist in channels[chat_id]:
-            Update(chat_id, playlist.split('_'))
-    sleep(sleep_time_between_updates)
