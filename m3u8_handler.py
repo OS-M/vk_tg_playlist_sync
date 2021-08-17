@@ -14,6 +14,10 @@ regex_3 = 'ts?.*'
 
 def parse_m3u8(url):
     urldir = os.path.dirname(url)
+    r = requests.get(url)
+    if r.status_code != 200:
+        print('ERROR: status code', r.status_code, url)
+        return None
     playlist = requests.get(url).text
     keyurl = re.findall(regex, playlist)[0]
     key = requests.get(keyurl).text
@@ -67,9 +71,12 @@ def download_m3u8(playlist, key, urldir):
     p = subprocess.call(['ffmpeg', '-allowed_extensions', "ALL", '-protocol_whitelist',
                      "crypto,file", '-i', 'index.m3u8', '-c', 'copy', 'temp.mp3'],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return open('temp.mp3', 'rb').read()
+    os.chdir('../')
+    return open('temp/temp.mp3', 'rb').read()
 
 
 def get_m3u8(url):
     result = parse_m3u8(url)
+    if result is None:
+        return None
     return download_m3u8(*result)

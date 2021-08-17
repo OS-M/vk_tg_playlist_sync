@@ -90,7 +90,8 @@ def GetContent(url: str):
     if url.count('.mp3') >= 1:
         r = requests.get(url)
         if r.status_code != 200:
-            print('ERROR', r.status_code)
+            print('ERROR: status code', r.status_code, url)
+            return None
         return r.content
     else:
         return get_m3u8(url)
@@ -115,18 +116,20 @@ def Update(chat_id, playlist):
                 cover = requests.get(audio["track_covers"][-1]).content
             else:
                 cover = None
-            bot.send_audio(chat_id,
-                           audio=GetContent(audio['url']),
-                           filename=name,
-                           title=audio["title"],
-                           performer=audio["artist"],
-                           duration=audio["duration"],
-                           thumb=cover,
-                           timeout=1000)
-            file.write(unique_name + '\n')
-            audios.append(unique_name)
-            file.flush()
-            print('Ok')
+            content = GetContent(audio['url'])
+            if content is not None:
+                bot.send_audio(chat_id,
+                               audio=content,
+                               filename=name,
+                               title=audio["title"],
+                               performer=audio["artist"],
+                               duration=audio["duration"],
+                               thumb=cover,
+                               timeout=1000)
+                file.write(unique_name + '\n')
+                audios.append(unique_name)
+                file.flush()
+                print('Ok')
         else:
             print('Skipping')
         processed = processed + 1
