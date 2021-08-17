@@ -6,6 +6,7 @@ import requests
 from telegram.ext import Updater, MessageHandler, Filters
 import json
 from settings import *
+from m3u8_handler import get_m3u8
 
 
 def SaveChannels():
@@ -85,6 +86,16 @@ def TelegramUpdate(update, context):
                 Update(chat_id, playlist.split('_'))
 
 
+def GetContent(url: str):
+    if url.count('.mp3') >= 1:
+        r = requests.get(url)
+        if r.status_code != 200:
+            print('ERROR', r.status_code)
+        return r.content
+    else:
+        return get_m3u8(url)
+
+
 def Update(chat_id, playlist):
     print('Updating', playlist, chat_id)
     print("Getting playlist...", end=' ')
@@ -100,16 +111,12 @@ def Update(chat_id, playlist):
         print('[' + f"{100. * processed / len(vk_audios):.1f}" + '%] ' + name + '...', end=' ')
         if audios.count(unique_name) == 0:
             print('Sending...', end=' ')
-            r = requests.get(audio["url"])
-            if r.status_code != 200:
-                print('ERROR', r.status_code)
-                continue
             if len(audio["track_covers"]) > 0:
                 cover = requests.get(audio["track_covers"][-1]).content
             else:
                 cover = None
             bot.send_audio(chat_id,
-                           audio=r.content,
+                           audio=GetContent(audio['url']),
                            filename=name,
                            title=audio["title"],
                            performer=audio["artist"],
