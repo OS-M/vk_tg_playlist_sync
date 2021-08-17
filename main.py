@@ -37,16 +37,16 @@ print("Ok")
 
 print("Files...", end=' ')
 
-channels_file = open(channels_file_name, "r")
+channels_file = open(channels_file_name, "r", encoding='utf-8')
 channels = json.load(channels_file)
 channels_file.close()
 
-file = open(audio_list_path, "r")
+file = open(audio_list_path, "r", encoding='utf-8')
 audios = []
 for line in file.readlines():
     audios.append(line.strip())
 file.close()
-file = open(audio_list_path, "a")
+file = open(audio_list_path, "a", encoding='utf-8')
 print("Ok")
 
 access_key = 0
