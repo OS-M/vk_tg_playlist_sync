@@ -114,8 +114,7 @@ venv.bak/
 vk_config.v2.json
 
 settings.py
-channels.json
-audio_list.txt
+cache/*
 
 # Spyder project settings
 .spyderproject

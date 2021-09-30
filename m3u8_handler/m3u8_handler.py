@@ -1,8 +1,6 @@
 import re
 import os
 import shutil
-import sys
-import tempfile
 import subprocess
 import requests
 import threading
@@ -19,7 +17,10 @@ def parse_m3u8(url):
         print('ERROR: status code', r.status_code, url)
         return None
     playlist = requests.get(url).text
-    keyurl = re.findall(regex, playlist)[0]
+    reg = re.findall(regex, playlist)
+    if not reg:
+        raise Exception('Invalid content')
+    keyurl = reg[0]
     key = requests.get(keyurl).text
 
     for match in re.finditer(regex_2, playlist, re.MULTILINE):
@@ -51,7 +52,7 @@ def clear_folder(folder_name):
 def download_m3u8(playlist, key, urldir):
     ts_list = [x for x in playlist.split('\n') if not x.startswith('#')]
 
-    dir_ = 'temp/'
+    dir_ = '../temp/'
     if os.path.exists(dir_):
         clear_folder(dir_)
     else:
@@ -71,8 +72,8 @@ def download_m3u8(playlist, key, urldir):
     p = subprocess.call(['ffmpeg', '-allowed_extensions', "ALL", '-protocol_whitelist',
                      "crypto,file", '-i', 'index.m3u8', '-c', 'copy', 'temp.mp3'],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    os.chdir('../')
-    return open('temp/temp.mp3', 'rb').read()
+    os.chdir('../../')
+    return open('../temp/temp.mp3', 'rb').read()
 
 
 def get_m3u8(url):
