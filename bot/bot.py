@@ -36,7 +36,8 @@ class Bot:
 
     def add_playlist(self, chat_id: str, text: str):
         if not text.endswith(str(self.access_key)):
-            pass
+            self.send_message(chat_id, 'Incorrect access key')
+            return
 
         self.generate_new_access_key()
         regex = re.search(r'audio_playlist(-?\d+_\d+)', text)

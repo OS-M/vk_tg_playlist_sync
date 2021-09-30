@@ -1,5 +1,5 @@
 telegram_token = ""  # telegram bot token from @BotFather
-audio_list_path = 'audio_list.txt'
+audio_list_path = 'cache/audio_list.txt'
 vk_login = ''
-channels_file_name = 'channels.json'
+channels_file_name = 'cache/channels.json'
 vk_password = ''
