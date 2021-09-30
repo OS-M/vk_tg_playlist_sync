@@ -3,4 +3,3 @@ audio_list_path = 'audio_list.txt'
 vk_login = ''
 channels_file_name = 'channels.json'
 vk_password = ''
-sleep_time_between_updates = 60  # seconds
