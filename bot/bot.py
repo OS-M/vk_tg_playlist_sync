@@ -12,15 +12,9 @@ class Bot:
         self.sent_audios = utils.get_sent_audios()
         self.vk_audio = vk_api.get_vk_audio_api()
         self.channels = utils.load_channels_from_json()
-        self.access_key = 0
-        self.generate_new_access_key()
 
         self.bot = telegram_bot
         print('Ready')
-
-    def generate_new_access_key(self):
-        self.access_key = random.randint(0, 1000)
-        print('New access key is', self.access_key)
 
     def send_message(self, chat_id, message):
         self.bot.send_message(chat_id, message)
@@ -43,11 +37,6 @@ class Bot:
         return True
 
     def add_playlist(self, chat_id: str, text: str):
-        if not text.endswith(str(self.access_key)):
-            self.send_message(chat_id, 'Incorrect access key')
-            return
-
-        self.generate_new_access_key()
         regex = re.search(r'audio_playlist(-?\d+_\d+)', text)
         if len(regex.groups()) != 1:
             self.send_message(chat_id, 'Invalid playlist address')

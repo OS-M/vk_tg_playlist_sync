@@ -20,7 +20,6 @@ def get_vk_audio_api():
                               auth_handler=two_factor,
                               captcha_handler=captcha_handler)
     vk_session.auth()
-    # vk = vk_session.get_api()
     vk_audio_ = vk_audio.VkAudio(vk_session)
     print("Ok")
     return vk_audio_
