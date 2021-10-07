@@ -1,6 +1,5 @@
 import settings
-from telegram.ext import Updater, MessageHandler, Filters
-from telegram.error import TelegramError
+import telebot
 import vk_api_utils.vk_api_utils as vk_api
 import utils.utils as utils
 import random
@@ -8,7 +7,7 @@ import re
 
 
 class Bot:
-    def __init__(self):
+    def __init__(self, telegram_bot):
         self.sent_audios_file = open(settings.audio_list_path, "a", encoding='utf-8')
         self.sent_audios = utils.get_sent_audios()
         self.vk_audio = vk_api.get_vk_audio_api()
@@ -16,52 +15,32 @@ class Bot:
         self.access_key = 0
         self.generate_new_access_key()
 
-        self.updater = Updater(settings.telegram_token, use_context=True)
-        dp = self.updater.dispatcher
-        dp.add_handler(MessageHandler(Filters.text & Filters.update.message, self.telegram_update))
-        self.updater.start_polling()
+        self.bot = telegram_bot
         print('Ready')
-
-    def __del__(self):
-        self.updater.stop()
-
-    def polling(self):
-        return not self.updater.is_idle
 
     def generate_new_access_key(self):
         self.access_key = random.randint(0, 1000)
         print('New access key is', self.access_key)
 
     def send_message(self, chat_id, message):
-        try:
-            self.updater.bot.send_message(chat_id, message)
-        except TelegramError:
-            print(chat_id, message)
-            print(str(TelegramError))
-            return True
-        return False
+        self.bot.send_message(chat_id, message)
+        return True
 
     def send_audio(self, chat_id,
                    audio,
-                   filename,
                    title,
                    performer,
                    duration,
                    thumb,
                    timeout):
-        try:
-            self.updater.bot.send_audio(chat_id,
-                                        audio=audio,
-                                        filename=filename,
-                                        title=title,
-                                        performer=performer,
-                                        duration=duration,
-                                        thumb=thumb,
-                                        timeout=timeout)
-        except TelegramError:
-            print(str(TelegramError))
-            return True
-        return False
+        self.bot.send_audio(chat_id,
+                            audio=audio,
+                            title=title,
+                            performer=performer,
+                            duration=duration,
+                            thumb=thumb,
+                            timeout=timeout)
+        return True
 
     def add_playlist(self, chat_id: str, text: str):
         if not text.endswith(str(self.access_key)):
@@ -107,14 +86,13 @@ class Bot:
             if content is None:
                 print('Error getting content')
             else:
-                if self.updater.bot.send_audio(chat_id,
-                                               audio=content,
-                                               filename=name,
-                                               title=audio["title"],
-                                               performer=audio["artist"],
-                                               duration=audio["duration"],
-                                               thumb=cover,
-                                               timeout=1000):
+                if self.send_audio(chat_id,
+                                   audio=content,
+                                   title=audio["title"],
+                                   performer=audio["artist"],
+                                   duration=audio["duration"],
+                                   thumb=cover,
+                                   timeout=1000):
                     self.add_sent_audio(unique_name)
                     print('Ok')
         print("Updating done")
@@ -130,13 +108,3 @@ class Bot:
                 print("Ok")
                 print('Playlist length: ', len(vk_audios))
                 self.update_chat_playlist(chat_id, vk_audios)
-
-    def telegram_update(self, update, _):
-        chat_id = update.message.chat.id
-        text = str(update.message.text).strip()
-
-        if text.startswith('/add_vk_playlist'):
-            self.add_playlist(str(chat_id), text)
-
-        if text.startswith('/update_vk_playlist'):
-            self.update_playlist(str(chat_id))
