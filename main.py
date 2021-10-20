@@ -17,6 +17,9 @@ def telegram_update(message):
     if text.startswith('/update_vk_playlist'):
         vk_bot.update_playlist(str(chat_id))
 
+    if text.lower() == "ping":
+        bot.send_message(chat_id, "pong")
+
 
 if __name__ == '__main__':
     bot.infinity_polling()
