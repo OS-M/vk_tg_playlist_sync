@@ -11,6 +11,7 @@ class Logger:
         self.last_updated = time.time()
 
     def log(self, *args, end='\n'):
+        print(*args, end=end)
         for s in args:
             self.cache += str(s) + ' '
         self.cache += end
@@ -20,6 +21,6 @@ class Logger:
         if time.time() - self.last_updated >= self.update_period:
             if len(self.cache.strip()) == 0:
                 self.cache = "**Empty**"
-            self.bot.send_message(self.chat_id, self.cache)
-            self.cache = ""
+            self.bot.send_message(self.chat_id, self.cache[:4000])
+            self.cache = self.cache[4000:]
             self.last_updated = time.time()

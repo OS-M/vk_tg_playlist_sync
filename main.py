@@ -5,7 +5,7 @@ from settings import telegram_token
 import logger.logger as logger
 
 bot = telebot.TeleBot(telegram_token)
-logger = logger.Logger(bot, 2, settings.admin_user_id)
+logger = logger.Logger(bot, 1 / 30, settings.admin_user_id)
 vk_bot = Bot(bot, logger)
 
 
