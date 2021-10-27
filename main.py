@@ -1,9 +1,12 @@
+import settings
 from bot.bot import Bot
 import telebot
 from settings import telegram_token
+import logger.logger as logger
 
 bot = telebot.TeleBot(telegram_token)
-vk_bot = Bot(bot)
+logger = logger.Logger(bot, 2, settings.admin_user_id)
+vk_bot = Bot(bot, logger)
 
 
 @bot.message_handler(func=lambda m: True)
@@ -19,6 +22,9 @@ def telegram_update(message):
 
     if text.lower() == "ping":
         bot.send_message(chat_id, "pong")
+
+    if text == "flush":
+        logger.update()
 
 
 if __name__ == '__main__':
