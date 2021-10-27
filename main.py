@@ -28,4 +28,8 @@ def telegram_update(message):
 
 
 if __name__ == '__main__':
-    bot.infinity_polling()
+    while True:
+        try:
+            bot.infinity_polling()
+        except Exception as e:
+            logger.log(e)
